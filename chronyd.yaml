@@ -1,0 +1,125 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: chronyd
+  labels:
+    app: chronyd
+    release: chronyd
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chronyd
+  labels:
+    app: chronyd
+    release: chronyd
+data:
+  chrony.conf: |
+    # pool pool.ntp.org iburst maxsources 3
+    # 指定上层NTP服务器为阿里云提供的公网NTP服务器
+    server ntp.aliyun.com minpoll 4 maxpoll 10 iburst
+    server ntp1.aliyun.com iburst minpoll 4 maxpoll 10
+    server ntp2.aliyun.com iburst minpoll 4 maxpoll 10
+    server ntp3.aliyun.com iburst minpoll 4 maxpoll 10
+    server ntp4.aliyun.com iburst minpoll 4 maxpoll 10
+    server ntp5.aliyun.com iburst minpoll 4 maxpoll 10
+    server ntp6.aliyun.com iburst minpoll 4 maxpoll 10
+    server ntp7.aliyun.com iburst minpoll 4 maxpoll 10
+    # 启用RTC（实时时钟）的内核同步
+    rtcsync
+    # 记录系统时钟获得/丢失时间的速率至drift文件中
+    driftfile /var/lib/chrony/drift
+    # 如果系统时钟的偏移量大于10秒，则允许在前三次更新中步进调整系统时钟
+    makestep 10 3
+    # 阿里云提供的公网NTP服务器不可用时，采用本地时间作为同步标准
+    local stratum 10
+    # 指定包含NTP验证密钥的文件
+    keyfile /etc/chrony.keys
+    # 指定存放日志文件的目录
+    logdir /var/log/chrony
+    # 让chronyd在选择源时忽略源的层级
+    stratumweight 0.05
+    # 禁用客户端访问的日志记录
+    noclientlog
+    # 如果时钟调整大于0.5秒，则向系统日志发送消息
+    logchange 0.5
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: chronyd
+  labels:
+    app: chronyd
+    release: chronyd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: unrestricted-psp
+subjects:
+- kind: ServiceAccount
+  name: chronyd
+  namespace: default
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: chronyd
+  labels:
+    app: chronyd
+    release: chronyd
+spec:
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+  replicas: 
+  selector:
+    matchLabels:
+      app: chronyd
+      release: chronyd
+  template:
+    metadata:
+      labels:
+        app: chronyd
+        release: chronyd
+    spec:
+      containers:
+      - image: docker.io/pnnlmiscscripts/chronyd:3.4-4
+        imagePullPolicy: IfNotPresent
+        name: main
+        command:
+        - /bin/sh
+        - -xec
+        - |
+          [ -f /var/run/chronyd.pid ] && rm -f /var/run/chronyd.pid
+          /usr/sbin/chronyd -n
+        securityContext:
+          privileged: true
+        resources:
+          {}
+        volumeMounts:
+        - mountPath: /var/lib/cronyd
+          name: state
+        - mountPath: /etc/chrony/chrony.conf
+          subPath: chrony.conf
+          name: config
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      hostPID: true
+      hostIPC: true
+      restartPolicy: Always
+      serviceAccountName: chronyd
+      volumes:
+      - configMap:
+          name: chronyd
+        name: config
+      - hostPath:
+          path: /var/lib/chrony
+        name: state
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - operator: Exists
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
