@@ -9,17 +9,21 @@ chrony包含两个程序：
 
 关于二者的详细介绍，请参见：https://chrony.tuxfamily.org/documentation.html
 
-kubenetes下部署chrony服务
+# kubenetes下部署chrony服务
+
+## 1、直接kubenetes下yaml文件部署
 
 kubectl apply -f chronyd.yaml
 
 ![image](https://user-images.githubusercontent.com/12782056/129527803-9423eaba-4a34-41ce-95f5-f83fb899de34.png)
   
-也可参考helm部署方式：https://artifacthub.io/packages/helm/pnnl-miscscripts/chronyd
+## 2、通过helm部署方
+
+https://artifacthub.io/packages/helm/pnnl-miscscripts/chronyd
+
 
 这里chrony.conf直接配置的阿里云公网NTP服务器
 
 ![image](https://user-images.githubusercontent.com/12782056/129529744-68d4ec72-98b8-4e64-b785-bb08812143a7.png)
 
 ![image](https://user-images.githubusercontent.com/12782056/129529356-4e7e18d9-a59a-449f-897e-9aec80d8c878.png)
-
