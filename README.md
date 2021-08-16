@@ -18,4 +18,6 @@ kubectl apply -f chronyd.yaml
 也可参考helm部署方式：https://artifacthub.io/packages/helm/pnnl-miscscripts/chronyd
 
 这里chrony.conf直接配置的阿里云公网NTP服务器
+![image](https://user-images.githubusercontent.com/12782056/129529356-4e7e18d9-a59a-449f-897e-9aec80d8c878.png)
+
 ![Uploading image.png…]()
