@@ -1,4 +1,14 @@
 # chrony
+chrony是网络时间协议（NTP）的通用实现。
+
+chrony包含两个程序：
+
+(1)chronyd是一个可以在启动时启动的守护程序, 用于调整内核中运行的系统时钟和时钟服务器同步。它确定计算机增减时间的比率，并对此进行补偿。
+
+(2)chronyc是一个命令行界面程序，用于监视chronyd的性能并在运行时更改各种操作参数。
+
+关于二者的详细介绍，请参见：https://chrony.tuxfamily.org/documentation.html
+
 kubenetes下部署chrony服务
 
 kubectl apply -f chronyd.yaml
@@ -6,3 +16,6 @@ kubectl apply -f chronyd.yaml
 ![image](https://user-images.githubusercontent.com/12782056/129527803-9423eaba-4a34-41ce-95f5-f83fb899de34.png)
   
 也可参考helm部署方式：https://artifacthub.io/packages/helm/pnnl-miscscripts/chronyd
+
+这里chrony.conf直接配置的阿里云公网NTP服务器
+![Uploading image.png…]()
